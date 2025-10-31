@@ -517,9 +517,15 @@ def analyze_page():
         preds, probs = predict_values(requirements_list, tokenizer, model)
 
         avg_conf_per_label = {
-            label: float(np.mean(probs[:, i])) for i, label in enumerate(LABEL_COLS)
-            }
-        df_confidence = pd.DataFrame.from_dict(avg_conf_per_label, orient='index', columns=['Avg. Confidence']).sort_values('Avg. Confidence', ascending=False)
+        label: float(np.mean(probs[:, i])) for i, label in enumerate(LABEL_COLS)
+        }
+        
+        # Convert to a sorted DataFrame
+        df_confidence = (
+            pd.DataFrame(list(avg_conf_per_label.items()), columns=["Human Value", "Average Confidence"])
+            .sort_values("Average Confidence", ascending=False)
+            .reset_index(drop=True)
+        )
         
         status_placeholder.progress(80, text="Preparing results...")
 
@@ -587,20 +593,17 @@ def analyze_page():
             st.pyplot(fig_heat)
 
         st.markdown("---")
+        st.subheader("3. Model Confidence per Human Value")
         
-        st.subheader("3. Model Confidence per Value")
-
         st.write(
-            "Average model confidence (probability) for each human value, across all requirements. "
-            "Higher confidence means the model was more certain when predicting that value."
+            "The table below shows the average confidence score the model assigned to each human value "
+            "across all detected requirements."
         )
-
-        fig_conf, ax_conf = plt.subplots(figsize=(8, 5))
-        sns.barplot(x=df_confidence['Avg. Confidence'], y=df_confidence.index, palette='mako', ax=ax_conf)
-        ax_conf.set_xlabel("Average Confidence (Probability)", fontsize=10)
-        ax_conf.set_ylabel("Human Value", fontsize=10)
-        ax_conf.set_xlim(0, 1)
-        st.pyplot(fig_conf)
+        
+        st.dataframe(
+            df_confidence.style.format({"Average Confidence": "{:.3f}"}),
+            use_container_width=True
+        )
 
         st.markdown("---")
         # --- COHERE ANALYSIS INTEGRATION ---
@@ -734,5 +737,6 @@ with tab1:
 
 with tab2:
     model_page()
+
 
 
