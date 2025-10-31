@@ -60,8 +60,8 @@ LABEL_COLS = ['Self-direction', 'Stimulation', 'Hedonism', 'Achievement', 'Power
 
 # CRITICAL FIX: Point to the deployment-ready folder
 SAVED_MODEL_PATH = "xdwake/HVD_distilbert"
-METRICS_FILE_PATH = "./all_experiment_metrics.csv"
-HYPERPARAMS_FILE_PATH = "./hyperparameters.json"
+METRICS_FILE_PATH = "./thesis_logs/all_experiment_metrics.csv"
+HYPERPARAMS_FILE_PATH = "./final_model/distilbert_focallos/hyperparameters.json"
 
 COHERE_MODEL_NAME = "command-r-plus-08-2024"
 
@@ -381,15 +381,16 @@ plt.rcParams.update({
 # --- Model Loading Function ---
 @st.cache_resource
 def load_model(model_path=SAVED_MODEL_PATH):
-    try:
-        # Try loading directly from Hugging Face (remote)
-        tokenizer = AutoTokenizer.from_pretrained(model_path)
-        model = AutoModelForSequenceClassification.from_pretrained(model_path)
-        st.success(f"✅ Model successfully loaded from Hugging Face: {model_path}")
-        return tokenizer, model
-    except Exception as e:
-        st.error(f"❌ Failed to load model from Hugging Face: {e}")
+    # Ensure all necessary files are present
+    if not os.path.exists(model_path):
+        st.error(f"Model files not found at: {model_path}. Please ensure the directory exists and contains `config.json` and `pytorch_model.bin`.")
         return None, None
+        
+    tokenizer = AutoTokenizer.from_pretrained(model_path)
+    # Use AutoModelForSequenceClassification for robust loading regardless of base model
+    model = AutoModelForSequenceClassification.from_pretrained(model_path)
+    return tokenizer, model
+
 # --- Prediction Function ---
 def predict_values(requirements_list, tokenizer, model):
     # Tokenize
@@ -515,6 +516,11 @@ def analyze_page():
         status_placeholder.progress(60, text="Running local predictions...")
         preds, probs = predict_values(requirements_list, tokenizer, model)
 
+        avg_conf_per_label = {
+            label: float(np.mean(probs[:, i])) for i, label in enumerate(LABEL_COLS)
+            }
+        df_confidence = pd.DataFrame.from_dict(avg_conf_per_label, orient='index', columns=['Avg. Confidence']).sort_values('Avg. Confidence', ascending=False)
+        
         status_placeholder.progress(80, text="Preparing results...")
 
         # Create results DataFrame
@@ -582,6 +588,21 @@ def analyze_page():
 
         st.markdown("---")
         
+        st.subheader("3. Model Confidence per Value")
+
+        st.write(
+            "Average model confidence (probability) for each human value, across all requirements. "
+            "Higher confidence means the model was more certain when predicting that value."
+        )
+
+        fig_conf, ax_conf = plt.subplots(figsize=(8, 5))
+        sns.barplot(x=df_confidence['Avg. Confidence'], y=df_confidence.index, palette='mako', ax=ax_conf)
+        ax_conf.set_xlabel("Average Confidence (Probability)", fontsize=10)
+        ax_conf.set_ylabel("Human Value", fontsize=10)
+        ax_conf.set_xlim(0, 1)
+        st.pyplot(fig_conf)
+
+        st.markdown("---")
         # --- COHERE ANALYSIS INTEGRATION ---
         st.header("4. Generative Strategic Analysis (via Cohere)")
         
@@ -713,5 +734,3 @@ with tab1:
 
 with tab2:
     model_page()
-
-
