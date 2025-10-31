@@ -381,16 +381,15 @@ plt.rcParams.update({
 # --- Model Loading Function ---
 @st.cache_resource
 def load_model(model_path=SAVED_MODEL_PATH):
-    # Ensure all necessary files are present
-    if not os.path.exists(model_path):
-        st.error(f"Model files not found at: {model_path}. Please ensure the directory exists and contains `config.json` and `pytorch_model.bin`.")
+    try:
+        # Try loading directly from Hugging Face (remote)
+        tokenizer = AutoTokenizer.from_pretrained(model_path)
+        model = AutoModelForSequenceClassification.from_pretrained(model_path)
+        st.success(f"✅ Model successfully loaded from Hugging Face: {model_path}")
+        return tokenizer, model
+    except Exception as e:
+        st.error(f"❌ Failed to load model from Hugging Face: {e}")
         return None, None
-        
-    tokenizer = AutoTokenizer.from_pretrained(model_path)
-    # Use AutoModelForSequenceClassification for robust loading regardless of base model
-    model = AutoModelForSequenceClassification.from_pretrained(model_path)
-    return tokenizer, model
-
 # --- Prediction Function ---
 def predict_values(requirements_list, tokenizer, model):
     # Tokenize
@@ -714,4 +713,5 @@ with tab1:
 
 with tab2:
     model_page()
+
 
