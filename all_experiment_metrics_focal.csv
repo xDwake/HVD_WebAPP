@@ -1,0 +1,2 @@
+Run_ID,Run_Notes,Metric_Set,F1_Macro,Hyperparameters,Timestamp
+BEST_FOCAL_LOSS,"MELHOR HP FOCAL LOSS: g=2.0, a=0.25",FINAL_BEST,0.0,"{""focal_gamma"": 2.0, ""focal_alpha"": 0.25, ""learning_rate"": 4.031170288036927e-05, ""per_device_train_batch_size"": 16, ""weight_decay"": 0.0020584494295802446, ""warmup_ratio"": 0.19398197043239887, ""num_train_epochs"": 8}",2025-10-30T21:27:08.160325

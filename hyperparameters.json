@@ -1,0 +1,14 @@
+{
+    "learning_rate": 4.348647281553795e-05,
+    "epochs": 12,
+    "train_batch_size": 8,
+    "eval_batch_size": 8,
+    "warmup_ratio": 0.04877839354988515,
+    "weight_decay": 0.08014269975599009,
+    "optimizer": "adamw_torch_fused",
+    "max_seq_length": 512,
+    "hidden_size": 768,
+    "hidden_layers": 6,
+    "dropout": "N/A",
+    "attention_heads": 12
+}
