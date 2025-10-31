@@ -59,9 +59,9 @@ LABEL_COLS = ['Self-direction', 'Stimulation', 'Hedonism', 'Achievement', 'Power
               'Security', 'Conformity', 'Tradition', 'Benevolence', 'Universalism']
 
 # CRITICAL FIX: Point to the deployment-ready folder
-SAVED_MODEL_PATH = "./final_model/distilbert_baseline"
+SAVED_MODEL_PATH = "xdwake/HVD_distilbert"
 METRICS_FILE_PATH = "./thesis_logs/all_experiment_metrics.csv"
-HYPERPARAMS_FILE_PATH = "./final_model/checkpoint-1096/hyperparameters.json"
+HYPERPARAMS_FILE_PATH = "./final_model/distilbert_focallos/hyperparameters.json"
 
 COHERE_MODEL_NAME = "command-r-plus-08-2024"
 
@@ -679,38 +679,31 @@ def model_page():
     st.subheader("Training Hyperparameters")
 
     try:
-        # ✅ Allowlist Hugging Face's TrainingArguments for loading
-        torch.serialization.add_safe_globals([TrainingArguments])
+        # Load hyperparameters from the JSON file using the dedicated path
+        with open(HYPERPARAMS_FILE_PATH, 'r') as f:
+            loaded_params = json.load(f)
 
-        # ✅ Now load safely
-        training_args: TrainingArguments = torch.load(
-            f"{SAVED_MODEL_PATH}/training_args.bin",
-            weights_only=False  # explicitly allow full object loading
-        )
-
-        config = AutoConfig.from_pretrained(SAVED_MODEL_PATH)
-
-        # Extract key hyperparameters
+        # Map JSON keys (snake_case) to Display Names (Title Case)
         hyperparams = {
-            "Learning Rate": getattr(training_args, "learning_rate", "N/A"),
-            "Epochs": getattr(training_args, "num_train_epochs", "N/A"),
-            "Train Batch Size": getattr(training_args, "per_device_train_batch_size", "N/A"),
-            "Eval Batch Size": getattr(training_args, "per_device_eval_batch_size", "N/A"),
-            "Warmup Ratio": getattr(training_args, "warmup_ratio", "N/A"),
-            "Weight Decay": getattr(training_args, "weight_decay", "N/A"),
-            "Optimizer": getattr(training_args, "optim", "N/A"),
-            "Max Seq Length": getattr(config, "max_position_embeddings", "N/A"),
-            "Hidden Size": getattr(config, "hidden_size", "N/A"),
-            "Hidden Layers": getattr(config, "num_hidden_layers", "N/A"),
-            "Dropout": getattr(config, "hidden_dropout_prob", "N/A"),
-            "Attention Heads": getattr(config, "num_attention_heads", "N/A"),
+            "Learning Rate": loaded_params.get("learning_rate", "N/A"),
+            "Epochs": loaded_params.get("epochs", "N/A"),
+            "Train Batch Size": loaded_params.get("train_batch_size", "N/A"),
+            "Eval Batch Size": loaded_params.get("eval_batch_size", "N/A"),
+            "Warmup Ratio": loaded_params.get("warmup_ratio", "N/A"),
+            "Weight Decay": loaded_params.get("weight_decay", "N/A"),
+            "Optimizer": loaded_params.get("optimizer", "N/A"),
+            "Max Seq Length": loaded_params.get("max_seq_length", "N/A"),
+            "Hidden Size": loaded_params.get("hidden_size", "N/A"),
+            "Hidden Layers": loaded_params.get("hidden_layers", "N/A"),
+            "Dropout": loaded_params.get("dropout", "N/A"),
+            "Attention Heads": loaded_params.get("attention_heads", "N/A")
         }
 
         hps_df = pd.DataFrame(list(hyperparams.items()), columns=['Parameter', 'Value']).set_index('Parameter')
         st.table(hps_df)
 
     except Exception as e:
-        st.warning(f"⚠️ Could not load hyperparameters: {e}")
+        st.warning(f"⚠️ Could not load hyperparameters from JSON file at {HYPERPARAMS_FILE_PATH}: {e}")
 
 
 
