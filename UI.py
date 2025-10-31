@@ -61,7 +61,7 @@ LABEL_COLS = ['Self-direction', 'Stimulation', 'Hedonism', 'Achievement', 'Power
 # CRITICAL FIX: Point to the deployment-ready folder
 SAVED_MODEL_PATH = "xdwake/HVD_distilbert"
 METRICS_FILE_PATH = "./thesis_logs/all_experiment_metrics.csv"
-HYPERPARAMS_FILE_PATH = "./final_model/distilbert_focallos/hyperparameters.json"
+HYPERPARAMS_FILE_PATH = "./hyperparameters.json"
 
 COHERE_MODEL_NAME = "command-r-plus-08-2024"
 
@@ -734,3 +734,4 @@ with tab1:
 
 with tab2:
     model_page()
+
